@@ -178,9 +178,9 @@ class YoloLoss(nn.Module):
         """
         
         ##### CODE #####
-        contains_object_response_mask = torch.ByteTensor(box_target.size())
+        contains_object_response_mask = torch..cuda.ByteTensor(box_target.size())
         contains_object_response_mask.zero_()
-        box_target_iou = torch.zeros(box_target.size())
+        box_target_iou = torch.zeros(box_target.size()).cuda()
         
         for i in range(0, box_target.size()[0], 2):
             curr_pred_boxes = box_pred[i:i+2]
@@ -196,9 +196,10 @@ class YoloLoss(nn.Module):
             
             iou = self.compute_iou(curr_pred_boxes_scaled[:, :4], curr_target_box[:, :4])
             max_iou, argmax = iou.max(0)
+            argmax = argmax.data.cuda()
             
             contains_object_response_mask[i+argmax]
-            box_target_iou[i+argmax,torch.LongTensor([4])] = max_iou
+            box_target_iou[i+argmax,torch.LongTensor([4]).cuda()] = (max_iou).data.cuda()
         
         return box_target_iou, contains_object_response_mask
         
