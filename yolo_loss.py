@@ -136,7 +136,7 @@ class YoloLoss(nn.Module):
         ##### CODE #####
         no_object_target = target_tensor[no_object_mask].view(-1,30)
         no_object_prediction = pred_tensor[no_object_mask].view(-1,30)
-        no_object_prediction_mask = torch.ByteTensor(no_object_prediction.size())
+        no_object_prediction_mask = torch.cuda.ByteTensor(no_object_prediction.size())
         no_object_prediction_mask.zero_()
         no_object_prediction_mask[:, 4] = 1
         no_object_prediction_mask[:, 9] = 1
@@ -178,19 +178,19 @@ class YoloLoss(nn.Module):
         """
         
         ##### CODE #####
-        contains_object_response_mask = torch..cuda.ByteTensor(box_target.size())
+        contains_object_response_mask = torch.cuda.ByteTensor(box_target.size())
         contains_object_response_mask.zero_()
         box_target_iou = torch.zeros(box_target.size()).cuda()
         
         for i in range(0, box_target.size()[0], 2):
             curr_pred_boxes = box_pred[i:i+2]
             
-            curr_pred_boxes_scaled = torch.FloatTensor(curr_pred_boxes.size())
+            curr_pred_boxes_scaled = torch.cuda.FloatTensor(curr_pred_boxes.size())
             curr_pred_boxes_scaled[:, :2] = curr_pred_boxes[:, :2]/self.S - 0.5*curr_pred_boxes[:, 2:4]
             curr_pred_boxes_scaled[:, 2:4] = curr_pred_boxes[:, :2]/self.S + 0.5*curr_pred_boxes[:, 2:4]
             
             curr_target_box = box_target[i].view(-1, 5)
-            curr_target_box_scaled = torch.FloatTensor(curr_target_box.size())
+            curr_target_box_scaled = torch.cuda.FloatTensor(curr_target_box.size())
             curr_target_box_scaled[:, :2] = curr_target_box[:, :2]/self.S - 0.5*curr_target_box[:, 2:4]
             curr_target_box_scaled[:, 2:4] = curr_target_box[:, :2]/self.S + 0.5*curr_target_box[:, 2:4]
             
@@ -201,6 +201,7 @@ class YoloLoss(nn.Module):
             contains_object_response_mask[i+argmax]
             box_target_iou[i+argmax,torch.LongTensor([4]).cuda()] = (max_iou).data.cuda()
         
+        box_target_iou = box_target_iou.data.cuda()
         return box_target_iou, contains_object_response_mask
         
     
