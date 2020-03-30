@@ -86,7 +86,7 @@ class YoloLoss(nn.Module):
         w_h_res = w_h_truth.sub(w_h_pred).pow(2).sum(1)
         w_h_res = w_h_res.mul(i_j_obj).sum()
         
-        reg_loss = self.l_coord*(center_res+w_h_res)
+        reg_loss = center_res+w_h_res
         
         return reg_loss
     
@@ -291,6 +291,7 @@ class YoloLoss(nn.Module):
         contain_loss = self.get_contain_conf_loss(box_prediction_response, box_target_response_iou)
         total_loss = (self.l_coord*reg_loss + contain_loss + 
                       self.l_noobj*no_object_loss + class_loss)/(pred_tensor.size()[0])
+        total_loss /= N
         
         return total_loss
 
